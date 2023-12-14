@@ -19,9 +19,36 @@ The overall structure of C-run is:
 * common structures
   * AST
 
+## Frontend
+
+### Parser
+
+Alternatives:
+* lalrpop -- http://lalrpop.github.io/lalrpop/index.html
+* pest (PEG) -- https://pest.rs/book/
+
+> At a high level, the difference between LL parsing and LR parsing is that LL parsers begin at the start symbol and try to apply productions to arrive at the target string, whereas LR parsers begin at the target string and try to arrive back at the start symbol.
+>
+> An LL parse is a left-to-right, leftmost derivation. That is, we consider the input symbols from the left to the right and attempt to construct a leftmost derivation. This is done by beginning at the start symbol and repeatedly expanding out the leftmost nonterminal until we arrive at the target string. An LR parse is a left-to-right, rightmost derivation, meaning that we scan from the left to right and attempt to construct a rightmost derivation. The parser continuously picks a substring of the input and attempts to reverse it back to a nonterminal.
+
+### Language and grammar
+
+The aim is to create a simplified C grammar.  In particular:
+* it will have no C preprocessor
+* there will be no automatic type coercing (but there will be explicit coercion)
+* there will be pointers
+* standard types will be i8, i16, i32, i64 (and unsigned versions), bool, char
+
+Questions:
+* how will we do forward references (inside the compilation unit we will just do two passes)
+* how will we do external references, especially with no header files (we'll need a db of symbols defined by other files inside the same workspace)
+* how will file i/o work without FILE* (which requires the CPP)
+* will we support varargs (for printf)
+* what will the runtime be like?  will it be general purpose, or embedded into another program?
+
 ### AST
 
-Notes on ASTs.
+Visitor pattern, specific example using ASTs: https://rust-unofficial.github.io/patterns/patterns/behavioural/visitor.html
 
 #### Optimising ASTs
 
@@ -69,3 +96,37 @@ Truffle -- https://github.com/oracle/graal/tree/master/truffle
 ### Benchmarking
 
 Are We Fast Yet? benchmark -- https://github.com/smarr/are-we-fast-yet
+
+## Backend
+
+Alternative code generation:
+* bytecode
+  * GraalVM (Truffle) or JVM
+  * Simple Object Machine (SOM)
+* machine language
+  * LLVM and Inkwell
+  * Cranelift
+
+### LLVM
+
+The Rust interface to LLVM is Inkwell (https://thedan64.github.io/inkwell/inkwell/index.html)
+
+Optimisation:
+* mid-level optimisation on LLVM IR
+* common subexpression and dead code elimination
+* scheduling and register allocation
+
+### Cranelift
+
+Cranelift is a Rust-native code generator.  Its main features are:
+* speed of compilation
+* optimising compiler
+* built-in binary output, including symbol table and relocations
+* uses SSA representation
+  * uses "parameter passing to basic blocks" rather than "phi iknstructions"
+* oriented more towards JIT compilation
+  * can compile individual functions (LLVM can compile up to a C translation unit e.g. file)
+* SIMD support
+
+Does not:
+* currently do mid-level optimisation
