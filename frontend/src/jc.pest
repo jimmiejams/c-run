@@ -4,4 +4,24 @@
 // Author: jams
 //
 
-jc = { "Hello World!" }
+translation_unit = {
+    SOI ~
+    (top_level_statement)* ~
+    EOI
+}
+
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" | "\r\n" }
+
+top_level_statement = { (function_definition | variable_definition) }
+
+function_definition = { "fn" ~ id ~ "()" ~ basic_block }
+
+variable_definition = { "let" ~ id ~ ":" ~ variable_type ~ ";" }
+
+id = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC)* }
+
+basic_block = { "{" ~ (statement)* ~ "}" }
+
+statement = { variable_definition }
+
+variable_type = { "i32" }
