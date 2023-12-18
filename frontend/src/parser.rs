@@ -4,17 +4,23 @@ use std::fs;
 
 #[derive(Parser)]
 #[grammar = "jc.pest"]
-pub struct JcParser;
+pub struct JcParser {
+    unparsed_input_file: String,
+}
 
 impl JcParser {
-    pub fn parse_input_file(input_filename: &str)  {
-        let unparsed_file = fs::read_to_string(input_filename)
-            .unwrap_or_else(|e| { panic!("cannot read file: {}", e)});
-        let p = JcParser::parse(Rule::translation_unit, &unparsed_file);
-        match p {
-            Ok(_) => println!("file parsed correctly"),
-            Err(e) => panic!("parse error: {}", e),
+    pub fn new() -> JcParser {
+        JcParser {
+            unparsed_input_file: String::from(""),
         }
+    }
+
+    pub fn parse_input_file(&mut self, input_filename: &str) -> pest::iterators::Pairs<Rule>  {
+        self.unparsed_input_file = fs::read_to_string(input_filename)
+            .unwrap_or_else(|e| { panic!("cannot read file: {}", e)});
+        let p = JcParser::parse(Rule::translation_unit, &self.unparsed_input_file)
+            .unwrap_or_else(|e| { panic!("parse error: {}", e); });
+        p
     }
 }
 

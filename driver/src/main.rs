@@ -8,5 +8,7 @@ struct DriverCli {
 
 fn main() {
     let args = DriverCli::parse();
-    JcParser::parse_input_file(&args.filename);
+    let mut parser = JcParser::new();
+    let ast = parser.parse_input_file(&args.filename);
+    println!("{:?}", ast);
 }
